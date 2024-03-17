@@ -25,7 +25,8 @@ def savePageImages():
         for i in range(pageCount):
             page = pdf[i]
             pix = page.get_pixmap()
-            img_bytes = pix.tobytes('png') 
+            print("displayed pages' width and height: ", pix.width, pix.height)
+            img_bytes = pix.tobytes('png')
             base64_encoded_img = base64.b64encode(img_bytes).decode('utf-8')
             data_url = f"data:image/png;base64,{base64_encoded_img}"
             img_urls.append(data_url)
@@ -40,12 +41,13 @@ def savePageImages():
 def index():
     global file
     if(file==None):
+        print("no file selected")
         return render_template("uploadFile.html")
     else:
         isSaved = savePageImages()
         if(isSaved):
             return render_template('editPdf.html',img_urls=img_urls)
-        print(isSaved)
+        print("File not saved")
         file=None
         return render_template("uploadFile.html")
 
@@ -66,12 +68,40 @@ def pdfSubmit():
 def generatePdf():
     pdf = fitz.open(filepath)
     for (id,textComp) in textComps.items():
+        print(f"textComp: {textComp}")
+        # print(f"pdf: {pdf}")
         page = pdf.load_page(textComp["page"]-1)
-        textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize']}px;'>{textComp['textContent']}</p>"
-        x = int(textComp["x"].replace("px","")) * 1.3585
-        y = int(textComp["y"].replace("px","")) * 1.888
+        print("Page size of fitz pdf:", page.rect.width, page.rect.height)
+        textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p>"
+        # appearent x, y -> 500, 800
+        # actually x, y -> 446, 697
+
+        # (x1, y1) and (x2, y2) to (x1', y1') and (x2', y2')
+        # x' = x1' + (x - x1)(x2' - x1')/(x2 - x1)
+        # y' = y1' + (y - y1)(y2' - y1')/(y2 - y1)
+        
+        # y1 => 0 -> -13     y2 => 802 -> 830
+        # x1 => 0 -> 0       x2 => 502 -> 520
+
+        x1, y1 = 0, 0
+        x1_new, y1_new = 0, -13
+
+        x2, y2 = 502, 802 
+        x2_new, y2_new = 520, 830
+
+        x = int(textComp["x"].replace("px","")) 
+        y = int(textComp["y"].replace("px","")) 
+
+        # print("First x and y", x, y)
+        
+        x = x1_new + (x - x1)*(x2_new - x1_new)/(x2 - x1)
+        y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
+        
+        # print("After x and y", x, y)
+
         page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
         print(f"text added : {x} {y}")
+    
     pdf.save("output.pdf")
 
 
