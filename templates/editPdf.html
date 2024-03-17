@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+{% block title %}Edit Pdf{% endblock %}
+{% block style%}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/editPdf.css') }}">
+{% endblock %}
+{% block content%}
+<div class="pdfEditorDiv">
+    <div id="thumbnailList"></div>
+    <div class="editArea">
+        <div class="pageArea">
+            <div id="previewPage" class="page"></div>
+        </div>
+        <div id="EditorTools" class="EditorTools">
+            <button onclick="addTextComp()" class="btn btn-warning" onc>
+                Add Text
+            </button>
+            <hr />
+            <div id="textProp">
+
+            </div>
+            <hr/>
+            <button onclick="generatePdf()" class="btn btn-primary">
+                Generate Sample PDF
+            </button>
+            <hr />
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script>
+    var img_urls = {{ img_urls | safe }}
+    let pageImages = []
+    for(let imgUrl of img_urls)
+    {
+        let imgObj = new Image()
+        imgObj.src = imgUrl
+        pageImages.push(imgObj)
+    }
+
+
+    let currTextComp = null;
+    let offset = [10, 10];
+    let isDown = false;
+
+
+
+    let TextComps = {}
+    let currPage = 1
+    let numPages = null
+    let pages = []
+    let selectedText = null
+
+   
+
+    
+
+    let handleMouseMove = (e) => {
+
+
+        if (isDown && currTextComp) {
+            mousePosition = {
+                x: e.clientX,
+                y: e.clientY,
+            };
+
+            currTextComp.style.left = (mousePosition.x + offset[0]) + 'px';
+            currTextComp.style.top = (mousePosition.y + offset[1]) + 'px';
+
+            // currTextComp.style.left = e.clientX + offset[0] + "px";
+            // currTextComp.style.top = e.clientY + offset[1] + "px";
+            // let tempTextComps = TextComps;
+            // if (tempTextComps) {
+            //   tempTextComps[selectedText]["x"] =
+            //     currTextComp.style.left;
+            //   tempTextComps[selectedText]["y"] =
+            //     currTextComp.style.top;
+            //    TextComps: tempTextComps });
+            //   console.log("updated text components:", TextComps);
+            // }
+            // console.log("Text Component Moved", TextComps);
+        }
+    };
+
+    let handleMouseUp = (e) => {
+        if (currTextComp) {
+            let tempTextComps = TextComps;
+            if (tempTextComps && selectedText) {
+                tempTextComps[selectedText]["x"] =
+                    currTextComp.style.left;
+                tempTextComps[selectedText]["y"] =
+                    currTextComp.style.top;
+                // console.log(
+                //   "updated text component:",
+                //   tempTextComps[selectedText]
+                // );
+                TextComps = tempTextComps
+            }
+        } else selectedText = null
+        isDown = false;
+        // offset = null;
+        currTextComp = null;
+    };
+
+    let showTextProp = (id) => {
+        if (
+            selectedText &&
+            TextComps[selectedText]
+        ) {
+            selectedTextComp = TextComps[selectedText];
+        }
+        if (selectedTextComp) {
+            let textPropDiv = document.getElementById("textProp")
+            textPropDiv.innerHTML = ""
+
+            let propRow1 = document.createElement("div")
+            propRow1.classList.add(["textPropRow"])
+            let colorLabel = document.createElement("label")
+            colorLabel.textContent = "Color"
+            propRow1.appendChild(colorLabel)
+            let colorInput = document.createElement("input")
+            colorInput.name = "color"
+            colorInput.value = selectedTextComp.color
+            colorInput.onchange = updateTextProp
+            colorInput.type = "color"
+            propRow1.appendChild(colorInput)
+            textPropDiv.appendChild(propRow1)
+
+            let propRow2 = document.createElement("div")
+            propRow2.classList.add(["textPropRow"])
+            let sizeLabel = document.createElement("label")
+            sizeLabel.textContent = "Size"
+            propRow2.appendChild(sizeLabel)
+            let sizeInput = document.createElement("input")
+            sizeInput.name = "fontSize"
+            sizeInput.value = selectedTextComp.fontSize
+            sizeInput.onchange = updateTextProp
+            sizeInput.type = "number"
+            propRow2.appendChild(sizeInput)
+            textPropDiv.appendChild(propRow2)
+
+
+            let propRow3 = document.createElement("div")
+            propRow3.classList.add(["textPropRow"])
+            let textLabel = document.createElement("label")
+            textLabel.textContent = "Text"
+            propRow3.appendChild(textLabel)
+            let textInput = document.createElement("input")
+            textInput.name = "textContent"
+            textInput.classList.add(["textInput"])
+            textInput.value = selectedTextComp.textContent
+            textInput.style.fontFamily = selectedTextComp.fontFamily
+            textInput.onchange = updateTextProp
+            textInput.type = "text"
+            propRow3.appendChild(textInput)
+            textPropDiv.appendChild(propRow3)
+
+
+
+        }
+    }
+
+    let handleMouseDown = (e) => {
+        let textCompContainer = e.target.parentElement
+        selectedText = textCompContainer.id
+        showTextProp(selectedText)
+        isDown = true;
+        offset = [
+            textCompContainer.offsetLeft - e.clientX,
+            textCompContainer.offsetTop - e.clientY,
+        ];
+        currTextComp = textCompContainer;
+        // console.log("in mousedown", this, currTextComp);
+        //   updating left and top upon moving mouse
+    }
+
+    let addTextMoveListeners = () => {
+        let previewPage = document.querySelector("#previewPage");
+        previewPage.onmouseup = handleMouseUp;
+        previewPage.onmousemove = handleMouseMove;
+    };
+
+    let renderTextComps = (container, currTextComps = null) => {
+        if (currTextComps === null) {
+            currTextComps = Object.values(TextComps).filter((textComp) => {
+                return textComp.page == currPage;
+            });
+
+            document.querySelectorAll(".textContainer").forEach((textComp) => {
+                container.removeChild(textComp);
+            });
+        }
+
+        currTextComps.forEach((textComp) => {
+            // let font = {
+            //     fontSize: textComp.fontSize.toString()+"px",
+            //     color: textComp.color,
+            //     fontFamily: textComp.fontFamily,
+            // };
+            // console.log(textComp);
+
+
+            let textContainer = document.createElement("div");
+            textContainer.style.top = textComp.y;
+            textContainer.style.left = textComp.x;
+            textContainer.classList.add("textContainer");
+            textContainer.onmousedown = handleMouseDown;
+            textContainer.id = textComp.id
+
+            let textDiv = document.createElement("div");
+            textDiv.style.fontSize = textComp.fontSize.toString()+"px"
+            textDiv.style.color = textComp.color
+            textDiv.style.fontFamily = textComp.fontFamily
+            textDiv.classList.add("textDiv");
+            textDiv.id = textComp.id
+            textDiv.textContent = textComp.textContent
+
+            textContainer.appendChild(textDiv)
+            container.appendChild(textContainer);
+        });
+    };
+
+    let updateTextProp = (e) => {
+        let propName = e.target.name;
+        let selectedTextComp = null;
+        if (
+            selectedText &&
+            TextComps[selectedText]
+        ) {
+            selectedTextComp = TextComps[selectedText];
+            let newVal = e.target.value;
+
+            if (propName == "fontSize") newVal = parseInt(newVal);
+            selectedTextComp[propName] = newVal;
+
+            TextComps[selectedText] = selectedTextComp
+            setTimeout(()=>{
+                renderTextComps(document.getElementById("previewPage"));
+            },100)
+        }
+    };
+
+    let removeTextComp = (id) => {
+        let tempTextComps = TextComps;
+        delete tempTextComps[id];
+        TextComps = tempTextComps;
+        renderTextComps(document.getElementById("previewPage"));
+    };
+
+
+    addTextComp = () => {
+        let tempTextComps = TextComps;
+        let newId = "text" + (Object.values(tempTextComps).length + 1);
+        let sampleText = "જય શ્રી રામ";
+
+        tempTextComps[newId] = {
+            id: newId,
+            page: currPage,
+            fontFamily: "Gujarati",
+            fontSize: 15,
+            textContent: sampleText,
+            color: "#FAFAFA",
+            x: "20px",
+            y: "20px"
+        };
+
+
+        renderTextComps(document.getElementById("previewPage"), [
+            tempTextComps[newId],
+        ]);
+        TextComps = tempTextComps
+    };
+
+    let updateCurrPage = (container) => {
+        container.innerHTML = "";
+
+        if (pageImages[currPage - 1]) {
+            // let currCanvas = pages[currPage - 1];
+            // let currCtx = currCanvas.getContext("2d");
+            // let currImageData = currCtx.getImageData(
+            //     0,
+            //     0,
+            //     currCanvas.width,
+            //     currCanvas.height
+            // );
+
+            let newCanvas = document.createElement("canvas");
+            let newCtx = newCanvas.getContext("2d");
+            newCanvas.width = 842
+            newCanvas.height = 1191
+            newCtx.drawImage(pageImages[currPage-1],0,0,842,1191)            
+            container.appendChild(newCanvas);
+            renderTextComps(container);
+            addTextMoveListeners();
+        }
+    };
+
+    let addThumbnail = (container, pageNumber) => {
+
+        
+        let currDiv = document.createElement("div");
+        currDiv.classList.add("thumbnail");
+
+        const canvas = document.createElement("canvas");
+        const canvasContext = canvas.getContext("2d");
+        canvas.height = 1191; 
+        canvas.width = 842; 
+        canvasContext.drawImage(pageImages[pageNumber-1],0,0,842,1191)
+
+        let thumbnailNumber = document.createElement("span");
+        thumbnailNumber.textContent = pageNumber;
+        currDiv.appendChild(thumbnailNumber);
+        currDiv.appendChild(canvas);
+        currDiv.addEventListener("click", () => {
+            currPage = pageNumber
+            updateCurrPage(document.getElementById("previewPage"));
+        });
+        container.appendChild(currDiv);
+    };
+
+    let addZoomListener = () => {
+        const zoomableDiv = document.getElementById("previewPage");
+        let zoomLevel = 1.0;
+
+        function handleMouseMove(event) {
+            const rect = zoomableDiv.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const zoomOriginX = (mouseX / rect.width) * 100 + "%";
+            const zoomOriginY = (mouseY / rect.height) * 100 + "%";
+
+            zoomableDiv.style.transform = `scale(${zoomLevel})`;
+            zoomableDiv.style.transformOrigin = `${zoomOriginX} ${zoomOriginY}`;
+        }
+
+        function handleZoom(event) {
+            event.preventDefault();
+
+            const zoomDelta = -1 * Math.sign(event.deltaY) * 0.1;
+            zoomLevel += zoomDelta;
+
+            if (zoomLevel < 1.0) {
+                zoomLevel = 1.0;
+            } else if (zoomLevel > 2.0) {
+                zoomLevel = 2.0;
+            }
+
+            const fakeEvent = new MouseEvent("mousemove", event);
+            handleMouseMove(fakeEvent);
+        }
+
+        zoomableDiv.addEventListener("mousemove", handleMouseMove);
+        zoomableDiv.addEventListener("wheel", handleZoom);
+    };
+
+
+    let renderPdf = async (container) => {
+        let pageCount = pageImages.length
+        numPages = pageCount;
+
+        for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+            let pageImage = pageImages[pageNumber-1]
+
+            setTimeout(()=>{
+            addThumbnail(container, pageNumber);
+            },100)
+            
+        }
+        setTimeout(()=>{
+            updateCurrPage(document.getElementById("previewPage"))
+            addZoomListener(document.getElementById("previewPage"));
+        },100)
+    };
+
+    let generatePdf = () => {
+        let formData = new FormData()
+        formData.append("textComps",JSON.stringify(TextComps))
+        fetch('/textSubmit', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log("response : ",response);
+        }).catch((error)=>{
+            console.log("error : ",error);
+        });
+    }
+
+    renderPdf(document.getElementById("thumbnailList"))
+</script>
+{% endblock %}

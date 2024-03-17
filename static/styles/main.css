@@ -1,0 +1,22 @@
+
+.inputVolumeDiv{
+    text-align: center;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+
+    .soundbarContainer{
+        margin: auto;
+        width: 700px;
+        height: 5vh;
+        border-radius: 30px;
+        border: solid 2px grey;
+        position: relative;
+        overflow: hidden;
+    
+        .soundbar{
+            position: absolute;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,234,0,1) 0px, rgba(184,187,11,1) 150px, rgba(31,175,5,1) 300px, rgba(138,10,32,1) 700px);
+        }
+    }
+}
