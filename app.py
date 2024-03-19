@@ -196,7 +196,8 @@ def textSubmit():
     return redirect("/")
 
 if __name__ == '__main__':
-    bride_groom_Name = 'ઈશિતા_તિલક'
+    os.makedirs('local', exist_ok=True)
+    bride_groom_Name = 'local/something'
     os.makedirs(bride_groom_Name, exist_ok=True)
     app.config['UPLOAD_FOLDER'] = os.path.join(bride_groom_Name, "uploads")
     app.run(debug=True) 
