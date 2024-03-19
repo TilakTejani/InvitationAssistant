@@ -9,8 +9,12 @@ import json
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = "uploads"
 
-file = None
-filepath = None
+pdffile = None
+pdffilepath = None
+
+csvfile = None
+csvfilepath = None
+
 # filepath = os.path.join(app.config['UPLOAD_FOLDER'],"t1.pdf")
 img_urls = None
 textComps = None
@@ -19,7 +23,7 @@ textComps = None
 def savePageImages():
     try:
         global img_urls
-        pdf = fitz.open(filepath)
+        pdf = fitz.open(pdffilepath)
         pageCount = len(pdf)
         img_urls = []
         for i in range(pageCount):
@@ -39,34 +43,61 @@ def savePageImages():
 
 @app.route('/')
 def index():
-    global file
-    if(file==None):
-        print("no file selected")
+    global pdffile
+    if(pdffile==None):
+        print("Not all files are selected")
         return render_template("uploadFile.html")
     else:
         isSaved = savePageImages()
         if(isSaved):
             return render_template('editPdf.html',img_urls=img_urls)
-        print("File not saved")
-        file=None
+        print("PdfFile not saved")
+        pdffile=None
         return render_template("uploadFile.html")
+
+@app.route('/csvUpload')
+def csvUpload():
+    global csvfile
+    if(csvfile==None):
+        print("Data file not selected")
+        return render_template("uploadCsvFile.html")
+    else:
+        return render_template("csvContent.html", csv_urls=csvfilepath)
 
 
 @app.route('/pdfSubmit', methods=['GET', 'POST'])
 def pdfSubmit():
-    global file,filepath
+    global pdffile, pdffilepath
     if(request.method=="POST"):
-        file = request.files["pdfFile"]
-        if(file.filename!=""):
+        pdffile = request.files["pdfFile"]
+        if(pdffile.filename!=""):
             os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filepath)
+            pdffilepath = os.path.join(app.config['UPLOAD_FOLDER'], pdffile.filename)
+            pdffile.save(pdffilepath)
         else:
-            file=filepath=None
+            pdffile=pdfilepath=None
+    print(pdffile, pdffilepath)
     return redirect("/")
 
+@app.route('/csvSubmit', methods=['GET', 'POST'])
+def csvSubmit():
+    print("Submitting CSV File....")
+    global csvfile, csvfilepath
+    if(request.method=="POST"):
+        print(request)
+        csvfile = request.files["csvFile"]
+        if(csvfile.filename!=""):
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            csvfilepath = os.path.join(app.config['UPLOAD_FOLDER'], csvfile.filename)
+            csvfile.save(csvfilepath)
+        else:
+            csvfile=csvfilepath=None
+    print(csvfile, csvfilepath)
+    return redirect("/")
+
+
 def generatePdf():
-    pdf = fitz.open(filepath)
+    pdf = fitz.open(pdffilepath)
     for (id,textComp) in textComps.items():
         print(f"textComp: {textComp}")
         # print(f"pdf: {pdf}")
@@ -101,9 +132,7 @@ def generatePdf():
 
         page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
         print(f"text added : {x} {y}")
-    
-    pdf.save("output.pdf")
-
+        pdf.save(f"editedPdfs/{textComp['textContent']}.pdf")
 
 @app.route('/textSubmit', methods=['GET', 'POST'])
 def textSubmit():

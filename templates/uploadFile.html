@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Upload File{% endblock %}
+{% block title %}Upload Invitation File{% endblock %}
 {% block style%}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/uploadFile.css') }}">
@@ -9,7 +9,7 @@
 <form id="pdfForm" class="form-container" enctype='multipart/form-data' method="post" action="/pdfSubmit">
     <div class="upload-files-container">
         <div class="drag-file-area">
-            <span class="material-icons-outlined upload-icon"> Upload your pdf </span>
+            <span class="material-icons-outlined upload-icon"> Upload Invitation File </span>
             <h3 class="dynamic-message"> Drag and drop any file here </h3>
             <label class="label"> or <span class="browse-files"> <input name="pdfFile" type="file"
                         class="default-file-input" />
