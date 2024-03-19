@@ -218,11 +218,9 @@
 
     let removeTextComp = (e) => {
         e.preventDefault()
-        console.log(TextComps)
         let tempTextComps = TextComps;
         delete tempTextComps[selectedText];
         TextComps = tempTextComps;
-        console.log(TextComps)
         renderTextComps(document.getElementById("previewPage"));
     };
 
