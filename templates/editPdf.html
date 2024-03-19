@@ -43,12 +43,9 @@
         pageImages.push(imgObj)
     }
 
-
     let currTextComp = null;
     let offset = [10, 10];
     let isDown = false;
-
-
 
     let TextComps = {}
     let currPage = 1
@@ -56,34 +53,15 @@
     let pages = []
     let selectedText = null
 
-   
-
-    
-
     let handleMouseMove = (e) => {
-
 
         if (isDown && currTextComp) {
             mousePosition = {
                 x: e.clientX,
                 y: e.clientY,
             };
-
             currTextComp.style.left = (mousePosition.x + offset[0]) + 'px';
             currTextComp.style.top = (mousePosition.y + offset[1]) + 'px';
-
-            // currTextComp.style.left = e.clientX + offset[0] + "px";
-            // currTextComp.style.top = e.clientY + offset[1] + "px";
-            // let tempTextComps = TextComps;
-            // if (tempTextComps) {
-            //   tempTextComps[selectedText]["x"] =
-            //     currTextComp.style.left;
-            //   tempTextComps[selectedText]["y"] =
-            //     currTextComp.style.top;
-            //    TextComps: tempTextComps });
-            //   console.log("updated text components:", TextComps);
-            // }
-            // console.log("Text Component Moved", TextComps);
         }
     };
 
@@ -95,15 +73,10 @@
                     currTextComp.style.left;
                 tempTextComps[selectedText]["y"] =
                     currTextComp.style.top;
-                // console.log(
-                //   "updated text component:",
-                //   tempTextComps[selectedText]
-                // );
                 TextComps = tempTextComps
             }
         } else selectedText = null
         isDown = false;
-        // offset = null;
         currTextComp = null;
     };
 
@@ -160,7 +133,15 @@
             propRow3.appendChild(textInput)
             textPropDiv.appendChild(propRow3)
 
-
+            let propRow4 = document.createElement("div")
+            propRow4.classList.add(["textPropRow"])
+            let button = document.createElement("button")
+            button.onclick = removeTextComp
+            button.classList.add(["btn"])
+            button.classList.add(["btn-primary"])
+            button.textContent = "Remove"
+            propRow4.appendChild(button)
+            textPropDiv.appendChild(propRow4)
 
         }
     }
@@ -175,8 +156,6 @@
             textCompContainer.offsetTop - e.clientY,
         ];
         currTextComp = textCompContainer;
-        // console.log("in mousedown", this, currTextComp);
-        //   updating left and top upon moving mouse
     }
 
     let addTextMoveListeners = () => {
@@ -197,14 +176,6 @@
         }
 
         currTextComps.forEach((textComp) => {
-            // let font = {
-            //     fontSize: textComp.fontSize.toString()+"px",
-            //     color: textComp.color,
-            //     fontFamily: textComp.fontFamily,
-            // };
-            // console.log(textComp);
-
-
             let textContainer = document.createElement("div");
             textContainer.style.top = textComp.y;
             textContainer.style.left = textComp.x;
@@ -245,10 +216,13 @@
         }
     };
 
-    let removeTextComp = (id) => {
+    let removeTextComp = (e) => {
+        e.preventDefault()
+        console.log(TextComps)
         let tempTextComps = TextComps;
-        delete tempTextComps[id];
+        delete tempTextComps[selectedText];
         TextComps = tempTextComps;
+        console.log(TextComps)
         renderTextComps(document.getElementById("previewPage"));
     };
 
