@@ -2,7 +2,7 @@
 {% block title %}data content{% endblock %} 
 {% block content%}
     <div class="container">
-        <h1>CSV Data Table</h1>
+        <h1>Data Table</h1>
         <table class="table">
             <thead>
                 <tr>
@@ -10,6 +10,9 @@
                     <th scope="col">Name</th>
                     <th scope="col">Phone Number</th>
                     <th scope="col">PDF Path</th>
+                    <th scope="col">Download</th>
+                    <th scope="col">Whatsapp Link</th>
+                    
                 </tr>
             </thead>
             <tbody>
@@ -19,6 +22,17 @@
                     <td>{{ row.Name }}</td>
                     <td>{{ row.Number }}</td>
                     <td>{{ row.filePath }}</td>
+                    <td> 
+                        <a href = "{{ row.filePath }}">
+                            <img src="static/public/download.svg" width="30" height="30" />
+                        </a>
+                    </td>
+<td> 
+                        <a href = "{{ row.filePath }}">
+                            <img src="static/public/whatsapp-svgrepo-com.svg" width="30" height="30" />
+                        </a>
+                    </td>
+
                 </tr>
                 {% endfor %}
             </tbody>
