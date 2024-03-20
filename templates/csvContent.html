@@ -10,6 +10,7 @@
                     <th scope="col">Name</th>
                     <th scope="col">Phone Number</th>
                     <th scope="col">PDF Path</th>
+                    <th scope="col">Open PDF</th>
                     <th scope="col">Download</th>
                     <th scope="col">Whatsapp Link</th>
                     
@@ -23,6 +24,10 @@
                     <td>{{ row.Number }}</td>
                     <td>{{ row.filePath }}</td>
                     <td> 
+                        <a href = "/pdfViewer{{ url_for('download', filepath=row.filePath) }}" target="_blank">
+                            <img src="static/public/icons8-open-link.svg" width="30" height="30" />
+                        </a>
+                    </td> <td> 
                         <a href = "{{ url_for('download', filepath=row.filePath) }}">
                             <img src="static/public/download.svg" width="30" height="30" />
                         </a>
@@ -43,6 +48,6 @@
 {%block script%}
     <script>
         console.log("in content");
-        var cav_url
+        // var cav_url
     </script>
 {%endblock%}

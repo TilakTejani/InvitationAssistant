@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}PDF Viewer{% endblock %}
+{% block style%}
+{%endblock%}
+
+
+{% block content %}
+    {{ path.relative}}
+    <embed src = "/{{ path }}" width="100%" height="800" />
+{% endblock %}
+
+{% block script %}
+<script>
+    console.log({{ path }})
+</script>
+{%endblock%}

@@ -201,6 +201,11 @@ def download(filepath):
     print(filepath)
     return send_file(filepath, as_attachment=True)
 
+@app.route('/pdfViewer/<path:filepath>', methods = ['GET','POST'])
+def viewPdf(filepath):
+    print(filepath)
+    return render_template("pdfViewer.html", path=filepath)
+
 if __name__ == '__main__':
     os.makedirs('local', exist_ok=True)
     bride_groom_Name = 'local/something'
