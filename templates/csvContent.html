@@ -23,11 +23,11 @@
                     <td>{{ row.Number }}</td>
                     <td>{{ row.filePath }}</td>
                     <td> 
-                        <a href = "{{ row.filePath }}">
+                        <a href = "{{ url_for('download', filepath=row.filePath) }}">
                             <img src="static/public/download.svg" width="30" height="30" />
                         </a>
                     </td>
-<td> 
+                    <td> 
                         <a href = "{{ row.filePath }}">
                             <img src="static/public/whatsapp-svgrepo-com.svg" width="30" height="30" />
                         </a>
