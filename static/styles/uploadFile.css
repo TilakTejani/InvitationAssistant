@@ -61,12 +61,15 @@ body {
 	text-align: center;
 }
 .drag-file-area .upload-icon {
-	font-size: 50px;
+	font-size: 2rem;
+	font-weight: bold;
 }
 .drag-file-area h3 {
-	font-size: 26px;
+	font-size: 1rem;
 	margin: 15px 0;
 }
+
+
 .drag-file-area label {
 	font-size: 19px;
     margin: auto;

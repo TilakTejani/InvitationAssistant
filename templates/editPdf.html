@@ -263,21 +263,10 @@
         container.innerHTML = "";
 
         if (pageImages[currPage - 1]) {
-            // let currCanvas = pages[currPage - 1];
-            // let currCtx = currCanvas.getContext("2d");
-            // let currImageData = currCtx.getImageData(
-            //     0,
-            //     0,
-            //     currCanvas.width,
-            //     currCanvas.height
-            // );
-
-            let newCanvas = document.createElement("canvas");
-            let newCtx = newCanvas.getContext("2d");
-            newCanvas.width = 842
-            newCanvas.height = 1191
-            newCtx.drawImage(pageImages[currPage-1],0,0,842,1191)            
-            container.appendChild(newCanvas);
+            let currPageImage = document.createElement("img")
+            currPageImage.classList.add(["currPageImage"])
+            currPageImage.src = pageImages[currPage-1].src
+            container.appendChild(currPageImage);
             renderTextComps(container);
             addTextMoveListeners();
         }
@@ -289,16 +278,16 @@
         let currDiv = document.createElement("div");
         currDiv.classList.add("thumbnail");
 
-        const canvas = document.createElement("canvas");
-        const canvasContext = canvas.getContext("2d");
-        canvas.height = 1191; 
-        canvas.width = 842; 
-        canvasContext.drawImage(pageImages[pageNumber-1],0,0,842,1191)
+        let thumbnailImage = document.createElement("img")
+        thumbnailImage.classList.add(["thumbnailImage"])
+        thumbnailImage.src = pageImages[pageNumber-1].src
+
 
         let thumbnailNumber = document.createElement("span");
         thumbnailNumber.textContent = pageNumber;
         currDiv.appendChild(thumbnailNumber);
-        currDiv.appendChild(canvas);
+        currDiv.appendChild(thumbnailImage);
+
         currDiv.addEventListener("click", () => {
             currPage = pageNumber
             updateCurrPage(document.getElementById("previewPage"));
