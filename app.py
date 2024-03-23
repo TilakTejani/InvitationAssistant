@@ -1,6 +1,7 @@
 from flask import Flask, render_template, Response,redirect,request, url_for, send_file
 import fitz
 import os
+import io
 import base64
 import json
 import pandas as pd
@@ -150,42 +151,48 @@ def csvSubmit():
 
 
 def generatePdf():
-    pdf = fitz.open(pdffilepath)
-    for (id,textComp) in textComps.items():
-        print(f"textComp: {textComp}")
-        # print(f"pdf: {pdf}")
-        page = pdf.load_page(textComp["page"]-1)
-        print("Page size of fitz pdf:", page.rect.width, page.rect.height)
-        # appearent x, y -> 500, 800
-        # actually x, y -> 446, 697
+    try:
+        pdf = fitz.open(pdffilepath)
+        for (id,textComp) in textComps.items():
+            # print(f"textComp: {textComp}")
+            # print(f"pdf: {pdf}")
+            page = pdf.load_page(textComp["page"]-1)
+            print("Page size of fitz pdf:", page.rect.width, page.rect.height)
+            # appearent x, y -> 500, 800
+            # actually x, y -> 446, 697
 
-        # (x1, y1) and (x2, y2) to (x1', y1') and (x2', y2')
-        # x' = x1' + (x - x1)(x2' - x1')/(x2 - x1)
-        # y' = y1' + (y - y1)(y2' - y1')/(y2 - y1)
-        
-        # y1 => 0 -> -13     y2 => 802 -> 830
-        # x1 => 0 -> 0       x2 => 502 -> 520
+            # (x1, y1) and (x2, y2) to (x1', y1') and (x2', y2')
+            # x' = x1' + (x - x1)(x2' - x1')/(x2 - x1)
+            # y' = y1' + (y - y1)(y2' - y1')/(y2 - y1)
+            
+            # y1 => 0 -> -13     y2 => 802 -> 830
+            # x1 => 0 -> 0       x2 => 502 -> 520
 
-        x1, y1 = 0, 0
-        x1_new, y1_new = 0, -13
+            x1, y1 = 0, 0
+            x1_new, y1_new = 0, -13
 
-        x2, y2 = 502, 802 
-        x2_new, y2_new = 520, 830
+            x2, y2 = 502, 802 
+            x2_new, y2_new = 520, 830
 
-        x = int(textComp["x"].replace("px","")) 
-        y = int(textComp["y"].replace("px","")) 
+            x = int(textComp["x"].replace("px","")) 
+            y = int(textComp["y"].replace("px","")) 
 
-        # print("First x and y", x, y)
-        
-        x = x1_new + (x - x1)*(x2_new - x1_new)/(x2 - x1)
-        y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
-        
-        # print("After x and y", x, y)
-        textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p>"
-        page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
-        print(f"text added : {x} {y}")
-        os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
-        pdf.save(f"{bride_groom_Name}/editedSamplePdfs/{textComp['textContent']}.pdf")
+            # print("First x and y", x, y)
+            
+            x = x1_new + (x - x1)*(x2_new - x1_new)/(x2 - x1)
+            y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
+            
+            # print("After x and y", x, y)
+            textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p>"
+            page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
+            print(f"text added : {x} {y}")
+        # os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
+        # pdf.save(f"{bride_groom_Name}/editedSamplePdfs/{textComp['textContent']}.pdf")
+        return pdf
+    except Exception as e:
+        print("exception in generatePdf : ",e)
+        return None
+
 
 @app.route('/textSubmit', methods=['GET', 'POST'])
 def textSubmit():
@@ -193,7 +200,11 @@ def textSubmit():
     if(request.method=="POST"):
         textComps = request.form["textComps"]
         textComps = json.loads(textComps)
-        generatePdf()
+        output = generatePdf()
+        if(output!=None):
+            outputBuffer = io.BytesIO()
+            output.save(outputBuffer)
+            return outputBuffer.getvalue()
     return redirect("/")
 
 @app.route('/<path:filepath>', methods = ['GET'])
