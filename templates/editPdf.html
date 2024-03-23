@@ -278,8 +278,10 @@
         let currDiv = document.createElement("div");
         currDiv.classList.add("thumbnail");
 
-        let thumbnailImage = document.createElement("img")
+        let thumbnailImage = new Image();
         thumbnailImage.classList.add(["thumbnailImage"])
+        thumbnailImage.width = 588
+        thumbnailImage.height = 842
         thumbnailImage.src = pageImages[pageNumber-1].src
 
 

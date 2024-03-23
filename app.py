@@ -215,7 +215,13 @@ def download(filepath):
 @app.route('/pdfViewer/<path:filepath>', methods = ['GET','POST'])
 def viewPdf(filepath):
     print(filepath)
-    return render_template("pdfViewer.html", path=filepath)
+    pdf = fitz.open(filepath)
+    if(pdf != None):
+        outputBuffer = io.BytesIO()
+        pdf.save(outputBuffer)
+        return outputBuffer.getvalue()
+    
+    return render_template("/csvContent")
 
 if __name__ == '__main__':
     os.makedirs('local', exist_ok=True)
