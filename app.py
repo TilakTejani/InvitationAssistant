@@ -5,6 +5,13 @@ import io
 import base64
 import json
 import pandas as pd
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from time import sleep
+import sys 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = "uploads"
 
@@ -18,6 +25,38 @@ img_urls = None
 textComps = None
 
 bride_groom_Name = None
+driver = None 
+
+current = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(current)
+
+
+CHROME_PATH = "/static/public/chromedriver-mac-arm64/chromedriver"
+EL_ADDRESS = {
+    "new_chat_el" : '//div[@title="Search input textbox"]',
+    "attachment_el" : "//div[@title='Attach']",
+    "doc_el" : "//input[@accept = '*']",
+    "send_el" : '//div[@aria-label="Send"]'
+}
+
+def get_chrome_driver():
+    chrome_options = webdriver.ChromeOptions()
+    
+    # Specify the remote debugging port
+    chrome_options.add_experimental_option("debuggerAddress", "localhost:9222")
+    
+    # Initialize the driver
+    driver = webdriver.Chrome(options=chrome_options)
+    try:
+        driver.get("https://web.whatsapp.com")
+        el = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, EL_ADDRESS["new_chat_el"]))
+        )
+    except Exception as err:
+        print("Not connected Whatsapp")
+    return driver
+
+
 
 def savePageImages():
     try:
@@ -212,6 +251,7 @@ def download(filepath):
     print(filepath)
     return send_file(filepath, as_attachment=True)
 
+
 @app.route('/pdfViewer/<path:filepath>', methods = ['GET','POST'])
 def viewPdf(filepath):
     print(filepath)
@@ -223,10 +263,61 @@ def viewPdf(filepath):
     
     return render_template("/csvContent")
 
+
+def open_attachment(name_or_number):
+    # driver.find_element_by_xpath(EL_ADDRESS["new_chat_el"]).send_keys(name_or_number,"\n")
+    # finding new_chat_el and sending details
+    el = WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.XPATH, EL_ADDRESS["new_chat_el"]))
+    )
+    el.send_keys(name_or_number,"\n")
+    
+    # print("attach finding")
+    el = WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.XPATH, EL_ADDRESS["attachment_el"]))
+    )
+    el.click()
+    # print("attach clicked")
+
+def send_pdf(saved_name, send_to):
+    print('Sending pdf', saved_name, 'to', send_to)
+    open_attachment(send_to)
+    
+    # print("doc finding")
+    doc_el = WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.XPATH, EL_ADDRESS["doc_el"]))
+    )
+    doc_el.send_keys(saved_name)
+    # print("doc done")
+    
+    print("send btn finding")
+    el = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, EL_ADDRESS["send_el"]))
+    )
+    el.click()
+    
+    print("send clicked")
+    
+    sleep(1)
+
+@app.route('/sendFile', methods =   ['GET','POST'])
+def sendFile():
+    file = request.args.get('file', type=str)
+    number = request.args.get('to', type=str)
+    send_pdf(current + '/' + file, number)
+
+    return render_template('/csvContent.html')
+
 if __name__ == '__main__':
+
+    # Example usage
+    driver = get_chrome_driver()
+
+
     os.makedirs('local', exist_ok=True)
     bride_groom_Name = 'local/something'
     os.makedirs(bride_groom_Name, exist_ok=True)
     app.config['UPLOAD_FOLDER'] = os.path.join(bride_groom_Name, "uploads")
     app.run(debug=True) 
+    driver.close()
     # generatePdf()

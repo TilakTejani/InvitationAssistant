@@ -1,0 +1,14 @@
+{% extends "base.html" %} 
+{% block title %}data content{% endblock %} 
+{% block content%}
+    <iframe id="myframe" width="1000" height="500" src="http://web.whatsapp.com">
+    </iframe>
+
+{% endblock %}
+
+{%block script%}
+    var x = document.getElementById("myframe")
+    var y = (x.contentWindow || x.contentDocument)
+    if (y.document)y = y.document
+    y.body.style.backgroundColor = ``red'';: 
+{%endblock%}

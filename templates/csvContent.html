@@ -24,16 +24,17 @@
                     <td>{{ row.Number }}</td>
                     <td>{{ row.filePath }}</td>
                     <td> 
-                        <button  style = "background-color: transparent; border: 0px solid" onclick = "viewPdf('/{{ row.filePath }}')" target="_blank">
+                        <a  style = "background-color: transparent; border: 0px solid" onclick = "viewPdf('/{{ row.filePath }}')" target="_blank">
                             <img src="static/public/icons8-open-link.svg" width="30" height="30" ></img>
                         </button>
-                    </td> <td> 
+                    </td> 
+                    <td> 
                         <a href = "{{ url_for('download', filepath=row.filePath) }}">
                             <img src="static/public/download.svg" width="30" height="30" />
                         </a>
                     </td>
                     <td> 
-                        <a href = "{{ row.filePath }}">
+                        <a href = "/sendFile?file=/{{ row.filePath }}&to={{ row.Number }} " target="_blank">
                             <img src="static/public/whatsapp-svgrepo-com.svg" width="30" height="30" />
                         </a>
                     </td>
