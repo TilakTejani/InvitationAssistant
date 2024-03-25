@@ -75,3 +75,7 @@ Navigate to your project directory in your terminal or command prompt, and execu
 ```bash
 python app.py
 ```
+##### 4. Run the Flask App
+
+In your started remote chrome browser's address bar, enter the URL provided by Flask. By default, Flask runs on `http://localhost:5000`. If you have configured Flask to run on a different port or host, use the corresponding URL.
+
