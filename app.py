@@ -137,9 +137,10 @@ def editPdfs(data):
                 x1, y1 = 0, 0
                 x1_new, y1_new = 0, -13
 
-                x2, y2 = 502, 802 
-                x2_new, y2_new = 520, 830
+                x2, y2 = 544, 840
+                x2_new, y2_new = 514, 801
 
+                
                 x = int(textComp["x"].replace("px","")) 
                 y = int(textComp["y"].replace("px","")) 
 
@@ -207,26 +208,26 @@ def generatePdf():
             # y1 => 0 -> -13     y2 => 802 -> 830
             # x1 => 0 -> 0       x2 => 502 -> 520
 
+        # needed x = 192, y = 246
+        # in real x = 199, y = 270 
+
             x1, y1 = 0, 0
             x1_new, y1_new = 0, -13
 
-            x2, y2 = 502, 802 
-            x2_new, y2_new = 520, 830
+            x2, y2 = 544, 840
+            x2_new, y2_new = 514, 801
 
             x = int(textComp["x"].replace("px","")) 
             y = int(textComp["y"].replace("px","")) 
 
-            # print("First x and y", x, y)
-            
             x = x1_new + (x - x1)*(x2_new - x1_new)/(x2 - x1)
             y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
             
-            # print("After x and y", x, y)
             textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p>"
             page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
             print(f"text added : {x} {y}")
-        # os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
-        # pdf.save(f"{bride_groom_Name}/editedSamplePdfs/{textComp['textContent']}.pdf")
+        os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
+        pdf.save(f"{bride_groom_Name}/editedSamplePdfs/{textComp['textContent']}.pdf")
         return pdf
     except Exception as e:
         print("exception in generatePdf : ",e)
@@ -311,7 +312,7 @@ def sendFile():
 if __name__ == '__main__':
 
     # Example usage
-    driver = get_chrome_driver()
+    # driver = get_chrome_driver()
 
 
     os.makedirs('local', exist_ok=True)
