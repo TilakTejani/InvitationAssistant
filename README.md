@@ -46,8 +46,8 @@ This guide explains how to start a Flask web application locally on your machine
 Clone the repository containing the Flask application code from the version control system (e.g., GitHub, GitLab, Bitbucket).
 
 ```bash
-git clone <repository_url>
-cd <repository_directory>
+git clone https://github.com/TilakTejani/InvitationAssistant.git
+cd InvitationAssistant
 ```
 
 ##### 2. Install Dependencies
