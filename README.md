@@ -18,8 +18,8 @@ Before connecting Selenium to an existing Chrome browser, you need to start Chro
 
 - **Windows**:
   ```shell
-  "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
-
+  "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 
+  ```
 - **macOS**:
   ```shell
   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222  
