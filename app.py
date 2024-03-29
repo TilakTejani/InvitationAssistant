@@ -190,6 +190,7 @@ def csvSubmit():
     return redirect("/csvUpload")
 
 
+
 def generatePdf():
     try:
         pdf = fitz.open(pdffilepath)
@@ -234,6 +235,53 @@ def generatePdf():
         return None
 
 
+@app.route('/generatePdf', methods = ['GET', 'POST'])
+def createPdf():
+    name = request.args.get('name')
+    try:
+        pdf = fitz.open(pdffilepath)
+        for (id,textComp) in textComps.items():
+            # print(f"textComp: {textComp}")
+            # print(f"pdf: {pdf}")
+            page = pdf.load_page(textComp["page"]-1)
+            print("Page size of fitz pdf:", page.rect.width, page.rect.height)
+            # appearent x, y -> 500, 800
+            # actually x, y -> 446, 697
+
+            # (x1, y1) and (x2, y2) to (x1', y1') and (x2', y2')
+            # x' = x1' + (x - x1)(x2' - x1')/(x2 - x1)
+            # y' = y1' + (y - y1)(y2' - y1')/(y2 - y1)
+            
+            # y1 => 0 -> -13     y2 => 802 -> 830
+            # x1 => 0 -> 0       x2 => 502 -> 520
+
+        # needed x = 192, y = 246
+        # in real x = 199, y = 270 
+
+            x1, y1 = 0, 0
+            x1_new, y1_new = 0, -13
+
+            x2, y2 = 544, 840
+            x2_new, y2_new = 514, 801
+
+            x = int(textComp["x"].replace("px","")) 
+            y = int(textComp["y"].replace("px","")) 
+
+            x = x1_new + (x - x1)*(x2_new - x1_new)/(x2 - x1)
+            y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
+            
+            textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p>"
+            page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
+            print(f"text added : {x} {y}")
+        os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
+        path =f"{bride_groom_Name}/createdPdfs/{name}.pdf"
+        pdf.save(path)
+        return path
+    except Exception as e:
+        print("exception in generatePdf : ",e)
+        return None
+
+
 @app.route('/textSubmit', methods=['GET', 'POST'])
 def textSubmit():
     global textComps
@@ -268,9 +316,12 @@ def viewPdf(filepath):
 def open_attachment(name_or_number):
     # driver.find_element_by_xpath(EL_ADDRESS["new_chat_el"]).send_keys(name_or_number,"\n")
     # finding new_chat_el and sending details
+
+    print("sending to ", name_or_number)
     el = WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.XPATH, EL_ADDRESS["new_chat_el"]))
     )
+    el.clear()
     el.send_keys(name_or_number,"\n")
     
     # print("attach finding")
@@ -312,8 +363,7 @@ def sendFile():
 if __name__ == '__main__':
 
     # Example usage
-    # driver = get_chrome_driver()
-
+    driver = get_chrome_driver()
 
     os.makedirs('local', exist_ok=True)
     bride_groom_Name = 'local/something'
@@ -322,3 +372,5 @@ if __name__ == '__main__':
     app.run(debug=True) 
     driver.close()
     # generatePdf()
+
+    

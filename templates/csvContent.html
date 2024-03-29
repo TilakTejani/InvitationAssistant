@@ -20,9 +20,8 @@
                 {% for row in data %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ row.Name }}</td>
-                    <td>{{ row.Number }}</td>
-                    <td>{{ row.filePath }}</td>
+                    <td><input style = "border : 0px solid white" id="name-{{loop.index}}" name="Name" value ="{{row.Name}}" type="" class="form-control"></td>
+                    <td><input style = "border : 0px solid white" id="number-{{loop.index}}" name="number" value ="{{row.Number}}" type="tel" class="form-control" pattern="[0-9]{10}"></td>
                     <td> 
                         <a  style = "background-color: transparent; border: 0px solid" onclick = "viewPdf('/{{ row.filePath }}')" target="_blank">
                             <img src="static/public/icons8-open-link.svg" width="30" height="30" ></img>
@@ -34,9 +33,9 @@
                         </a>
                     </td>
                     <td> 
-                        <a href = "/sendFile?file=/{{ row.filePath }}&to={{ row.Number }} " target="_blank">
+                        <button style="background-color: transparent; border: 0px solid transparent;"  onclick = "sendInvitation('{{row.filePath}}'  ,'{{loop.index}}')">
                             <img src="static/public/whatsapp-svgrepo-com.svg" width="30" height="30" />
-                        </a>
+                        </button>
                     </td>
 
                 </tr>
@@ -48,6 +47,25 @@
 
 {%block script%}
 <script>
+
+    function sendInvitation(file, index){
+        console.log(file,index)
+        let number = document.getElementById("number-" + index).value;
+        let name = document.getElementById("name-" + index).value;
+        console.log(number)
+
+        fetch("/generatePdf?name=" + name)
+        .then(res =>  res.text())
+        .then(data => {
+            console.log("file created at ", data )
+            fetch("/sendFile?file=/" + data + "&to="  + number, {method: "POST"})
+            .then(
+                console.log("Invitation Sent to ", name)
+            )
+        })
+        .catch(error => console.log(error))
+    }
+
     function viewPdf( pdfpath ){
         fetch("/pdfViewer" + pdfpath)
         .then(
