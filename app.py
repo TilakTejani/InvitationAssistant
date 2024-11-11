@@ -5,6 +5,7 @@ import io
 import base64
 import json
 import pandas as pd
+from urllib.parse import quote
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -150,13 +151,19 @@ def editPdfs(data):
                 y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
                 
                 # print("After x and y", x, y)
-                textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{name}</p>"
+                textHtml = f"<p style='font-weight:bolder; color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{name}</p>"
                 page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
                 print(f"text added : {x} {y}")
-                os.makedirs(os.path.join(f'{bride_groom_Name}', 'createdPdfs'), exist_ok=True)
-                pdfPath  = os.path.join(f'{bride_groom_Name}/createdPdfs',f'{name}.pdf')
-                data[i]['filePath'] = pdfPath
-                pdf.save(f"{bride_groom_Name}/createdPdfs/{name}.pdf")
+            os.makedirs(os.path.join(f'{bride_groom_Name}', 'createdPdfs'), exist_ok=True)
+            page = pdf[-1]
+            for i in range(1,10):
+                link = f"<a style='font-size: 15px; color: {textComp['color']} href='https://672c59a63d48ece92d14.appwrite.global?invitee_name={'+'.join(invitee_name.split())}&person_name={'+'.join(name.split())}&num_persons={i}' >{i}</a>"
+                x1 = 100 + i * 20
+                y1 = 500
+                page.insert_htmlbox(fitz.Rect(x1, y1,x1+10,y1+10),link)
+            pdfPath  = os.path.join(f'{bride_groom_Name}/createdPdfs',f'{name}.pdf')
+            data[i]['filePath'] = pdfPath
+            pdf.save(f"{bride_groom_Name}/createdPdfs/{name}.pdf")
     return data
 
 @app.route('/pdfSubmit', methods=['GET', 'POST'])
@@ -213,27 +220,44 @@ def generatePdf():
         # in real x = 199, y = 270 
 
             x1, y1 = 0, 0
-            x1_new, y1_new = 0, -13
+            x1_new, y1_new = -5, -20
 
             x2, y2 = 544, 840
-            x2_new, y2_new = 514, 801
+            x2_new, y2_new = 460, 700
 
             x = int(textComp["x"].replace("px","")) 
             y = int(textComp["y"].replace("px","")) 
 
             x = x1_new + (x - x1)*(x2_new - x1_new)/(x2 - x1)
             y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
+
             
-            textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p>"
+            textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px; font-weight: bolder;'>{textComp['textContent']}</p>"
+            print(textHtml)
             page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
             print(f"text added : {x} {y}")
         os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
+        
+        page = pdf[-1]
+        for i in range(1,11):
+            color = textComp['color']
+            person_name = quote(textComp['textContent'], safe="")
+            link = f"https://672c59a63d48ece92d14.appwrite.global?invitee_name={'+'.join(invitee_name.split())}&person_name={'+'.join(person_name.split())}&num_persons={i}"
+            html_box = f"<a href='{link}' ><p style='color:{color}; text-decoration:none; font-size: 15px; font-weight: bolder;'>{i}</p></a>"
+            percentage_margin = 20
+            pwidth, pheight = page.rect.width, page.rect.height
+            pwidth_eff = pwidth * (1 - 2 * percentage_margin/100)
+            x_interval = pwidth_eff / (10 - 1)
+            x_start = pwidth * percentage_margin / 100
+            x1, y1 = x_start + (i-1) * x_interval, pheight * 0.6
+            height, width = 50, 50
+            rect = fitz.Rect(x1, y1, x1 + height, y1 + width)
+            page.insert_htmlbox(rect, html_box)
         pdf.save(f"{bride_groom_Name}/editedSamplePdfs/{textComp['textContent']}.pdf")
         return pdf
     except Exception as e:
         print("exception in generatePdf : ",e)
         return None
-
 
 @app.route('/generatePdf', methods = ['GET', 'POST'])
 def createPdf():
@@ -270,10 +294,19 @@ def createPdf():
             x = x1_new + (x - x1)*(x2_new - x1_new)/(x2 - x1)
             y = y1_new + (y - y1)*(y2_new - y1_new)/(y2 - y1)
             
-            textHtml = f"<p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p>"
-            page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml)
+            textHtml = f"<p style='font-weight:bolder' > <p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{textComp['textContent']}</p></p>"
+            page.insert_htmlbox(fitz.Rect(x,y,x+1000,y+1000),textHtml, "font-weight:bolder;")
             print(f"text added : {x} {y}")
-        os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
+            os.makedirs(os.path.join(f'{bride_groom_Name}', 'editedSamplePdfs'), exist_ok=True)
+            
+        page = pdf[-1]
+        for i in range(1,10):
+            color = textComp['color']
+            link = f"https://672c59a63d48ece92d14.appwrite.global?invitee_name={'+'.join(invitee_name.split())}&person_name={'+'.join(name.split())}&num_persons={i}"
+            html_box = f"<a style='font-size: 20px; color: {color}' href='{link}' ><p style='color: {textComp['color']};font-size:{textComp['fontSize'] + 2}px;'>{i}</p></a>"
+            x1 = 100 + i * 50
+            y1 = 500
+            page.insert_htmlbox(fitz.Rect(x1, y1,x1+20,y1+20),html_box)
         path =f"{bride_groom_Name}/createdPdfs/{name}.pdf"
         pdf.save(path)
         return path
@@ -363,10 +396,12 @@ def sendFile():
 if __name__ == '__main__':
 
     # Example usage
-    driver = get_chrome_driver()
+    # driver = get_chrome_driver()
 
     os.makedirs('local', exist_ok=True)
-    bride_groom_Name = 'local/something'
+    global invitee_name
+    invitee_name = "Tilak Tejani"
+    bride_groom_Name = 'local/kaushalBhikadiya'
     os.makedirs(bride_groom_Name, exist_ok=True)
     app.config['UPLOAD_FOLDER'] = os.path.join(bride_groom_Name, "uploads")
     app.run(debug=True) 
